@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, Phone, ShoppingCart, User, LogOut, LogIn, UserPlus, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { categoryService } from '@/services/categoryService';
 
 const Navbar = () => {
   // Giả lập state đăng nhập
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('Văn Anh');
   const [cartCount, setCartCount] = useState(0);
+
+  // State lưu danh sách danh mục
+  const [categories, setCategories] = useState([]);
+  const location = useLocation(); // Hook để bắt sự kiện đổi trang
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await categoryService.getActiveCategories();
+        if (res.status === 200) {
+          setCategories(res.data);
+        }
+      } catch (error) {
+        console.error("Lỗi tải danh mục menu:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <header className="w-full font-sans">
@@ -72,13 +91,20 @@ const Navbar = () => {
               <span className="hover:text-[#8cc63f] transition-colors flex items-center">
                 Menu <ChevronDown size={14} className="ml-1" />
               </span>
-              {/* Box Dropdown (Ẩn đi, chỉ hiện khi hover vào thẻ cha) */}
               <div className="absolute top-full left-0 w-48 bg-white text-black shadow-lg rounded-b-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-left -translate-y-2 group-hover:translate-y-0">
                 <div className="py-2">
-                  <Link to="/menu/tat-ca" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-[#8cc63f]">Tất cả sản phẩm</Link>
-                  <Link to="/menu/tra-sua" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-[#8cc63f]">Trà sữa</Link>
-                  <Link to="/menu/sua-tuoi" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-[#8cc63f]">Sữa tươi</Link>
-                  <Link to="/menu/topping" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-[#8cc63f]">Topping</Link>
+                  <Link to="/menu" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-[#8cc63f]">
+                    Tất cả sản phẩm
+                  </Link>
+                  {categories.map((cat) => (
+                    <Link 
+                      key={cat.id} 
+                      to={`/menu?category=${cat.slug}`} 
+                      className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-[#8cc63f]"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
