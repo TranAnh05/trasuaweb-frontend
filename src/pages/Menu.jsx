@@ -4,6 +4,7 @@ import { Search, ChevronRight, Filter, Plus } from 'lucide-react';
 import { productService } from '@/services/productService';
 import { categoryService } from '@/services/categoryService';
 import { formatCurrency } from '@/utils/formatters';
+import ProductCard from '@/components/product/ProductCard';
 
 const Menu = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -214,30 +215,7 @@ const Menu = () => {
               {/* Product Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.length > 0 ? products.map(product => (
-                  <div key={product.id} className="group bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-xl hover:border-[#8cc63f]/30 transition-all duration-300 cursor-pointer flex flex-col h-full relative">
-                    
-                    {/* Ảnh sản phẩm */}
-                    <div className="relative w-full pt-[100%] rounded-xl bg-gray-50 overflow-hidden mb-4">
-                      <img 
-                        src={product.defaultImage || "https://images.unsplash.com/photo-1558857563-b37102e99e00?auto=format&fit=crop&w=300&q=80"} 
-                        alt={product.name} 
-                        className="absolute inset-0 w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-
-                    {/* Thông tin */}
-                    <h3 className="font-bold text-gray-800 text-sm mb-2 line-clamp-2 group-hover:text-[#8cc63f] transition-colors">
-                      {product.name}
-                    </h3>
-                    
-                    {/* Phần giá + Nút Add */}
-                    <div className="mt-auto flex items-end justify-between">
-                      <PriceDisplay minPrice={product.minPrice} maxPrice={product.maxPrice} />
-                      <button className="w-8 h-8 rounded-full bg-[#f4f9f0] text-[#8cc63f] flex items-center justify-center group-hover:bg-[#8cc63f] group-hover:text-white transition-colors">
-                        <Plus className="cursor-pointer" size={18} />
-                      </button>
-                    </div>
-                  </div>
+                  <ProductCard key={product.id} product={product} />
                 )) : (
                   <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100">
                     <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">

@@ -4,6 +4,7 @@ import Navbar from './components/layouts/Navbar';
 import Footer from './components/layouts/Footer';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
+import ProductDetail from './pages/ProductDetail';
 
 // Component Layout dùng chung cho các trang có Header/Footer
 const MainLayout = ({ children }) => {
@@ -26,6 +27,7 @@ const App = () => {
         <Route path="/" element={<MainLayout><Home /></MainLayout>} />
         
         <Route path="/menu" element={<MainLayout><Menu /></MainLayout>} />
+        <Route path="/product/:slug" element={<MainLayout><ProductDetail /></MainLayout>} />
         
         {/* <Route path="/login" element={<Login />} /> */}
       </Routes>

@@ -6,6 +6,7 @@ export const productService = {
         return axiosClient.get('/products', { params });
     },
     
+    // hàm lấy chi tiết sản phẩm
     getProductBySlug: (slug) => {
         return axiosClient.get(`/products/${slug}`);
     }
