@@ -12,13 +12,12 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { categoryService } from "@/services/categoryService";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 const Navbar = () => {
     const { user, logout } = useAuth();
 
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState("Văn Anh");
-    const [cartCount, setCartCount] = useState(0);
+   const { cartCount } = useCart();
 
     // State lưu danh sách danh mục
     const [categories, setCategories] = useState([]);

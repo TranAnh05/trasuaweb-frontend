@@ -20,8 +20,11 @@ export const AuthProvider = ({ children }) => {
     
     // 2. Lưu thông tin user để hiển thị lên Navbar
     localStorage.setItem('user_info', JSON.stringify(userData));
+
+    // 3. Xoa session_id khi da dang nhap
+    localStorage.removeItem('guest_session_id');
     
-    // 3. Cập nhật state để Navbar tự động re-render
+    // 4. Cập nhật state để Navbar tự động re-render
     setUser(userData); 
   };
 

@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, ShoppingCart, ChevronRight, Check } from "lucide-react";
+import { Star, ShoppingCart, ChevronRight, Check, Minus, Plus, Loader2 } from "lucide-react";
 import { productService } from "@/services/productService";
 import { toppingService } from "@/services/toppingService";
 import { formatCurrency } from "@/utils/formatters";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "react-toastify";
+import { getGuestSessionId } from "@/utils/cartHelper";
+import { cartService } from "@/services/cartService";
 
 const ProductDetail = () => {
     const { slug } = useParams(); // Lấy slug từ URL
+    const { user } = useAuth();
+    const { fetchCart } = useCart();
 
     // States lưu trữ dữ liệu API
     const [product, setProduct] = useState(null);
@@ -16,6 +23,9 @@ const ProductDetail = () => {
     // States quản lý tương tác người dùng
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [selectedToppings, setSelectedToppings] = useState([]); // Mảng chứa các topping
+
+    const [quantity, setQuantity] = useState(1);
+    const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -68,14 +78,70 @@ const ProductDetail = () => {
         });
     };
 
-    // TÍNH TỔNG TIỀN THEO THỜI GIAN THỰC
+    // Hàm xử lý tăng giảm số lượng
+    const handleQuantityChange = (type) => {
+        if (type === "decrease" && quantity > 1) {
+            setQuantity((prev) => prev - 1);
+        } else if (type === "increase" && quantity < 20) {
+            // Giới hạn mua 20 ly 1 lúc tránh spam
+            setQuantity((prev) => prev + 1);
+        }
+    };
+
+    // TÍNH TỔNG TIỀN PHẢI NHÂN VỚI SỐ LƯỢNG
     const calculateTotalPrice = () => {
         if (!selectedVariant) return 0;
         const toppingsTotal = selectedToppings.reduce(
             (sum, topping) => sum + topping.price,
             0,
         );
-        return selectedVariant.price + toppingsTotal;
+        return (selectedVariant.price + toppingsTotal) * quantity;
+    };
+
+    const handleAddToCart = async () => {
+        if (!selectedVariant) {
+            toast.warning("Vui lòng chọn size sản phẩm!");
+            return;
+        }
+
+        try {
+            setIsAdding(true);
+
+            // Đóng gói DTO giống hệt Backend yêu cầu
+            const payload = {
+                variantId: selectedVariant.id,
+                quantity: quantity,
+                sessionId: user ? null : getGuestSessionId(), // Nếu vô danh thì lấy mã ảo
+                toppings: selectedToppings.map((t) => ({
+                    toppingId: t.id,
+                    quantity: 1, // Mặc định mỗi topping tick chọn là 1 phần
+                })),
+            };
+
+            const response = await cartService.addToCart(payload);
+
+            if (response.status === 200) {
+                toast.success("Đã thêm món vào giỏ hàng!");
+
+                // Gọi Context tải lại giỏ hàng để số đếm trên Navbar nảy lên ngay lập tức!
+                await fetchCart();
+
+                // (Tùy chọn) Đặt lại form nếu muốn
+                // setQuantity(1);
+                // setSelectedToppings([]);
+            }
+        } catch (error) {
+            if (error.response && error.response.data) {
+                toast.error(
+                    error.response.data.message ||
+                        "Không thể thêm vào giỏ hàng",
+                );
+            } else {
+                toast.error("Lỗi kết nối đến máy chủ");
+            }
+        } finally {
+            setIsAdding(false);
+        }
     };
 
     if (loading) {
@@ -276,6 +342,34 @@ const ProductDetail = () => {
                             </div>
                         </div>
 
+                        {/* BỘ CHỌN SỐ LƯỢNG NẰM NGAY TRÊN KHUNG TỔNG TIỀN */}
+                        <div className="mb-6">
+                            <p className="text-gray-700 font-medium mb-3">
+                                Số lượng:
+                            </p>
+                            <div className="flex items-center bg-white border border-gray-200 p-1.5 rounded-xl w-max shadow-sm">
+                                <button
+                                    onClick={() =>
+                                        handleQuantityChange("decrease")
+                                    }
+                                    className="w-10 h-10 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                                >
+                                    <Minus size={18} />
+                                </button>
+                                <span className="w-14 text-center font-bold text-gray-800 text-lg">
+                                    {quantity}
+                                </span>
+                                <button
+                                    onClick={() =>
+                                        handleQuantityChange("increase")
+                                    }
+                                    className="w-10 h-10 rounded-lg flex items-center justify-center text-[#8cc63f] hover:bg-green-50 transition-colors"
+                                >
+                                    <Plus size={18} />
+                                </button>
+                            </div>
+                        </div>
+
                         {/* TỔNG TIỀN & BUTTON MUA HÀNG */}
                         <div className="mt-auto bg-gray-50 p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-gray-100">
                             <div>
@@ -286,9 +380,25 @@ const ProductDetail = () => {
                                     {formatCurrency(calculateTotalPrice())}
                                 </p>
                             </div>
-                            <button className="w-full sm:w-auto bg-[#8cc63f] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#7ab036] transition-colors shadow-lg shadow-green-200 flex items-center justify-center gap-2">
-                                <ShoppingCart size={20} />
-                                Thêm vào giỏ hàng
+                            <button
+                                onClick={handleAddToCart}
+                                disabled={isAdding}
+                                className="w-full sm:w-auto bg-[#8cc63f] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#7ab036] transition-colors shadow-lg shadow-green-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isAdding ? (
+                                    <>
+                                        <Loader2
+                                            size={20}
+                                            className="animate-spin"
+                                        />{" "}
+                                        Đang xử lý...
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShoppingCart size={20} /> Thêm vào giỏ
+                                        hàng
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

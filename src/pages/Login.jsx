@@ -19,6 +19,11 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
+      const currentSessionId = localStorage.getItem('guest_session_id');
+      if (currentSessionId) {
+        data.sessionId = currentSessionId; 
+      }
+
       const response = await authService.login(data);
       
       if (response.status === 200) {

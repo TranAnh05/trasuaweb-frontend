@@ -9,6 +9,7 @@ import Menu from "./pages/Menu";
 import ProductDetail from "./pages/ProductDetail";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Cart from "./pages/Cart";
 
 // Component Layout dùng chung cho các trang có Header/Footer
 const MainLayout = ({ children }) => {
@@ -52,6 +53,15 @@ const App = () => {
                         element={
                             <MainLayout>
                                 <ProductDetail />
+                            </MainLayout>
+                        }
+                    />
+
+                    <Route
+                        path="/cart"
+                        element={
+                            <MainLayout>
+                                <Cart />
                             </MainLayout>
                         }
                     />
