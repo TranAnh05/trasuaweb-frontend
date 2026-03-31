@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/layouts/Navbar";
@@ -11,6 +16,10 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import Success from "./pages/Success";
+import MyOrders from "./pages/MyOrders";
+import ProfileLayout from "./components/layouts/ProfileLayout";
+import OrderTracking from "./pages/OrderTracking";
 
 // Component Layout dùng chung cho các trang có Header/Footer
 const MainLayout = ({ children }) => {
@@ -67,7 +76,7 @@ const App = () => {
                         }
                     />
 
-                    <Route 
+                    <Route
                         path="/checkout"
                         element={
                             <MainLayout>
@@ -76,7 +85,51 @@ const App = () => {
                         }
                     />
 
-                    {/* <Route path="/login" element={<Login />} /> */}
+                    <Route
+                        path="/success"
+                        element={
+                            <MainLayout>
+                                <Success />
+                            </MainLayout>
+                        }
+                    />
+
+                    <Route
+                        path="/track-order"
+                        element={
+                            <MainLayout>
+                                <OrderTracking />
+                            </MainLayout>
+                        }
+                    />
+
+                    {/* KHỐI NESTED ROUTES: Quản lý tài khoản */}
+                    {/* Bọc ProfileLayout bên trong MainLayout để vẫn giữ được Navbar và Footer */}
+                    <Route
+                        path="/account"
+                        element={
+                            <MainLayout>
+                                <ProfileLayout />
+                            </MainLayout>
+                        }
+                    >
+                        {/* URL: /account -> Tự động chuyển hướng sang /account/profile */}
+                        <Route
+                            index
+                            element={<Navigate to="profile" replace />}
+                        />
+
+                        {/* URL: /account/profile -> Sẽ render Profile vào vị trí Outlet */}
+                        <Route
+                            path="profile"
+                            element={
+                                <div>Trang hồ sơ cá nhân (Đang phát triển)</div>
+                            }
+                        />
+
+                        {/* URL: /account/orders -> Sẽ render MyOrders vào vị trí Outlet */}
+                        <Route path="orders" element={<MyOrders />} />
+                    </Route>
                 </Routes>
             </Router>
             <ToastContainer
