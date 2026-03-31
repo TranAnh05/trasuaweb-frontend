@@ -19,16 +19,10 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      const currentSessionId = localStorage.getItem('guest_session_id');
-      if (currentSessionId) {
-        data.sessionId = currentSessionId; 
-      }
-
       const response = await authService.login(data);
       
       if (response.status === 200) {
         toast.success(response.message || "Đăng nhập thành công!");
-        
         // Bóc tách dữ liệu từ cấu trúc: response.data (TokenResponse)
         const token = response.data.token;
         const user = response.data.user;

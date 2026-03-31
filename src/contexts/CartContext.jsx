@@ -29,6 +29,13 @@ export const CartProvider = ({ children }) => {
                 
                 // 3. Lấy thẳng tổng tiền Backend tính sẵn (Khắc phục triệt để lỗi NaN)
                 setCartTotal(response.data.cartTotalPrice || 0);
+
+               // Nếu có User (đã đăng nhập) VÀ dưới local vẫn còn session_id
+               // Tức là API getCart vừa rồi đã thực hiện gộp giỏ thành công, ta có thể an tâm xóa nó đi.
+                if (user && localStorage.getItem('guest_session_id')) {
+                    localStorage.removeItem('guest_session_id');
+                }
+
             }
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu giỏ hàng:", error);
@@ -38,7 +45,7 @@ export const CartProvider = ({ children }) => {
         } finally {
             setIsLoadingCart(false);
         }
-    }, []);
+    }, [user]);
 
     // 2. Tự động lấy giỏ hàng khi App vừa chạy HOẶC khi user đăng nhập/đăng xuất
     useEffect(() => {
